@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 from fastapi import APIRouter, Depends, status, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -13,25 +13,38 @@ templates = Jinja2Templates(directory="app/templates")
 
 @router.post("", response_model=BriefingResponse, status_code=201)
 def create_briefing(payload: BriefingCreate, db: Annotated[Session, Depends(get_db)]):
+    # takes validated json and hands it to the service for the multi-table save
     return service.create_briefing(db, payload)
 
-@router.get("", response_model=List[BriefingResponse])
+@router.get("", response_model=list[BriefingResponse])
 def list_briefings(db: Annotated[Session, Depends(get_db)]):
+    # returns all briefings; response_model handles the orm-to-json mapping
     return service.list_briefings(db)
 
 @router.get("/{id}", response_model=BriefingResponse)
 def get_briefing(id: int, db: Annotated[Session, Depends(get_db)]):
+    # standard pk lookup
     return service.get_briefing(db, id)
 
 @router.post("/{id}/generate")
 def generate_report(request: Request, id: int, db: Annotated[Session, Depends(get_db)]):
+    # pulls raw data, transforms it for the template, and bakes it into 
+    # a static html string to be stored in the db.
     briefing = service.get_briefing(db, id)
-    # TODO: Implement Jinja2 rendering logic here
-    return {"message": "Report generation logic pending implementation"}
+    view_model = service.format_briefing_for_report(briefing)
+    
+    template = templates.get_template("report.html")
+    html = template.render({"request": request, **view_model})
+    
+    service.mark_briefing_generated(db, briefing, html)
+    return {"message": "Report generated successfully", "status": "generated"}
 
 @router.get("/{id}/html", response_class=HTMLResponse)
-def get_report_html(id: int, db: Annotated[Session, Depends(get_db)]):
+def view_html_report(id: int, db: Annotated[Session, Depends(get_db)]):
+    # serves the pre-rendered html directly from the db to save on cpu/rendering time
     briefing = service.get_briefing(db, id)
+    
     if not briefing.html_content:
-        raise HTTPException(status_code=400, detail="Report not yet generated")
+        raise HTTPException(status_code=400, detail="Report has not been generated yet")
+        
     return HTMLResponse(content=briefing.html_content)

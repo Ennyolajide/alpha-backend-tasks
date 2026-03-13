@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .report-section {
+    margin-bottom: 2rem;
+  }
+  .report-header {
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .report-header h2 {
+    margin: 0;
+    color: #1e3a8a;
+  }
+  .company-meta {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+  }
+  .summary-box {
+    background-color: #f3f4f6;
+    padding: 1rem;
+    border-left: 4px solid #3b82f6;
+    margin-bottom: 1.5rem;
+  }
+  .points-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  .points-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .key-points li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    font-weight: bold;
+  }
+  .risks li::before {
+    content: "⚠";
+    position: absolute;
+    left: 0;
+    color: #ef4444;
+  }
+  .metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  .metrics-table th, .metrics-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .metrics-table th {
+    background-color: #f9fafb;
+    font-weight: bold;
+    color: #374151;
+  }
+</style>
+
+<div class="report-header">
+  <h2>{{ company_name }} ({{ ticker }})</h2>
+  <div class="company-meta">
+    Sector: <strong>{{ sector }}</strong> | Analyst: <strong>{{ analyst_name }}</strong>
+  </div>
+</div>
+
+<div class="report-section">
+  <h3>Executive Summary</h3>
+  <div class="summary-box">
+    {{ summary }}
+  </div>
+</div>
+
+<div class="report-section">
+  <h3>Recommendation</h3>
+  <p><strong>{{ recommendation }}</strong></p>
+</div>
+
+<div class="report-section">
+  <h3>Key Points</h3>
+  <ul class="points-list key-points">
+    {% for point in key_points %}
+      <li>{{ point }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="report-section">
+  <h3>Risks</h3>
+  <ul class="points-list risks">
+    {% for risk in risks %}
+      <li>{{ risk }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% if metrics %}
+<div class="report-section">
+  <h3>Key Metrics</h3>
+  <table class="metrics-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for metric in metrics %}
+      <tr>
+        <td>{{ metric.name }}</td>
+        <td>{{ metric.value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}
