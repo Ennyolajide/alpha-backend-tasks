@@ -45,6 +45,42 @@ Do not commit API keys or secrets.
 
 The service automatically uses the fake LLM provider if no Gemini API key is provided, making it easy to test and develop without external API dependencies.
 
+## LLM Configuration
+
+### Provider Implementation
+This service uses a provider abstraction pattern for LLM integration:
+
+- **Interface**: `SummarizationProvider` with `generateCandidateSummary()` method
+- **Real Provider**: Google Gemini 2.0 Flash API
+- **Test Provider**: Fake implementation for reliable testing
+
+### Using Gemini (Production)
+1. Get a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Set `GEMINI_API_KEY` in your `.env` file
+3. The service will automatically use Gemini when the API key is provided
+
+### Using Fake Provider (Testing/Development)
+- Leave `GEMINI_API_KEY` empty or unset
+- The service automatically falls back to the fake provider
+- Returns consistent test data without external API calls
+
+### Structured Output
+The LLM is prompted to return structured JSON with:
+- `score`: Number (0-100)
+- `strengths`: String array
+- `concerns`: String array  
+- `summary`: String
+- `recommendedDecision`: "advance" | "hold" | "reject"
+
+Invalid responses are handled gracefully with fallback values.
+
+### Assumptions and Limitations
+- Single active provider at a time
+- Gemini API requires internet connectivity
+- Rate limits apply to Gemini API usage
+- Fake provider returns deterministic test responses
+- No provider fallback implemented (single point of failure)
+
 ## Run Migrations
 
 ```bash
