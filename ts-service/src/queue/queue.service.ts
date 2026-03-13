@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { EventEmitter } from 'events';
 
 import { Injectable } from '@nestjs/common';
 
@@ -10,7 +11,7 @@ export interface EnqueuedJob<TPayload = unknown> {
 }
 
 @Injectable()
-export class QueueService {
+export class QueueService extends EventEmitter {
   private readonly jobs: EnqueuedJob[] = [];
 
   enqueue<TPayload>(name: string, payload: TPayload): EnqueuedJob<TPayload> {
@@ -22,6 +23,7 @@ export class QueueService {
     };
 
     this.jobs.push(job);
+    this.emit('enqueue', job);
     return job;
   }
 
